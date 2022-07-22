@@ -1,8 +1,11 @@
 const WXBizMsgCrypt = require('wxcrypt');
 const { o2x,x2o } = require('wxcrypt');
 const token = process.env['TOKEN'] || 'nUoBqY2r';
+console.log('token', token);
 const encodingAESKey = process.env['ENCODING_AES_KEY'] || 'CmRHvvA95oRdJutpROpuuC2HuRLCRQQLHDbkQPvemyP';
+console.log('encodingAESKey', encodingAESKey);
 const appid = process.env['APPID'] || 'BwdOH8TGkYnTmeWvoQ';
+console.log('appid', appid);
 var weixin = new WXBizMsgCrypt(token, encodingAESKey, appid);
 var cors = require('cors');
 var express = require('express');
@@ -80,7 +83,8 @@ app.get('/weixin', function(req, res){
     console.log('timestamp', timestamp);
     var nonce = req.query.nonce;
     console.log('nonce', nonce);
-    var echostr = req.body;
+    //var echostr = req.body;
+    var echostr = req.query.echostr;
     console.log('echostr', echostr);
     var demsg = weixin.verifyURL(msg_signature, timestamp, nonce, echostr);
     console.log('demsg', demsg);
@@ -102,7 +106,7 @@ app.post('/weixin', function(req, res){
     var jxml = x2o(demsg);
     console.log('jxml', jxml);
     if(jxml && jxml.xml && jxml.xml.TaskId && jxml.xml.EventKey) {
-        io.sockets.in(jxml.xml.TaskId).emit('event_name', jxml.xml.EventKey);
+        io.sockets.in(jxml.xml.TaskId).emit('event_name', {FromUserName: jxml.xml.FromUserName, EventKey: jxml.xml.EventKey});
     }
     res.end(JSON.stringify('jxml'));
 
